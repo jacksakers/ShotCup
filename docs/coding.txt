@@ -1,0 +1,39 @@
+World Cup Fantasy App - Coding Guidelines
+
+1. Backend (Python/FastAPI)
+
+Framework: Use FastAPI. It provides automatic validation and Swagger UI documentation, making frontend integration much easier.
+
+Database Access: Use sqlite3 built-in library with contextlib.closing for safe connections, OR use SQLAlchemy for a robust ORM experience.
+
+Project Structure:
+
+backend/
+├── main.py           # FastAPI application and routing
+├── database.py       # SQLite connection setup
+├── models.py         # Data schemas (Pydantic/SQLAlchemy)
+├── parser.py         # Logic for parsing the pasted FIFA text
+└── requirements.txt
+
+
+Parsing Logic Best Practice: Write pure functions for parsing that take raw string text and return Python dictionaries. This makes it incredibly easy to write unit tests for your parser without needing database access.
+
+2. Frontend (React/Vite)
+
+Components: Use functional components and React Hooks (useState, useEffect).
+
+Routing: Use react-router-dom to manage pages (Home/Leaderboard, Profile, Trading, Admin).
+
+State Management: For a small app, React Context is sufficient for storing the current logged-in user and sitewide auth state. No need for Redux.
+
+Styling: Use Tailwind CSS.
+
+Tip: Use max-w-md mx-auto on your main container to make the app look like a native mobile app even on desktop screens.
+
+API Calls: Centralize all fetch or axios calls in a src/api.js file so you only have to configure your backend IP address in one place.
+
+3. Version Control & Environment
+
+Git: Initialize a git repo at the root directory.
+
+Environment Variables: Create a .env file in the backend for ADMIN_PASSWORD and SITE_PASSWORD. Create a .env file in the frontend for VITE_API_URL (which will be your Tailscale IP). Never commit .env to Git.

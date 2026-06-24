@@ -1,0 +1,96 @@
+World Cup Fantasy App - Implementation Guide
+
+Phase 1: Local Setup & Initialization
+
+Install Prerequisites on your Ubuntu Mini PC:
+
+Python 3.10+
+
+Node.js (v18+) & npm
+
+Tailscale (ensure the PC is authenticated to your Tailnet)
+
+Initialize Backend:
+
+mkdir wc-fantasy && cd wc-fantasy
+
+python3 -m venv venv
+
+source venv/bin/activate
+
+pip install fastapi uvicorn pydantic sqlite3
+
+Initialize Frontend:
+
+npm create vite@latest frontend -- --template react
+
+cd frontend && npm install
+
+npm install -D tailwindcss postcss autoprefixer
+
+npx tailwindcss init -p (Configure tailwind.config.js to scan your React files).
+
+Phase 2: Public Hosting via Tailscale Funnel
+
+To allow your family to access the app on the public internet without opening router ports:
+
+Enable Funnel in Tailscale:
+
+Go to your Tailscale Admin Console on the web.
+
+Go to Access Controls and ensure funnel is permitted for your device.
+
+Go to DNS and enable "MagicDNS" and "HTTPS Certificates".
+
+Run the Funnel:
+
+On your Ubuntu PC, run: tailscale funnel 8000
+
+Tailscale will output a public URL, looking something like:
+https://your-machine-name.tailnet-name.ts.net
+
+Configure the App:
+
+Now that your app will be at a public URL, your Vite frontend and FastAPI backend should ideally be served together.
+
+In your React app, set API calls to use relative paths (e.g., /api/teams instead of http://localhost:8000/api/teams) so it automatically uses the Tailscale Funnel URL.
+
+Phase 3: Building the App (Order of Operations)
+
+Database & API: Build the SQLite tables and FastAPI endpoints to create users, fetch teams, and handle trades. Ensure all API routes start with /api/ (e.g., /api/users).
+
+The Parser: Build the parser.py file. Paste the FIFA text into a test string, and use Regex to extract the team names and stats. Wire this to an Admin POST endpoint.
+
+Frontend Layout: Build the generic mobile layout (Header, Nav Bar, Content area).
+
+Auth Flow: Build the sitewide password screen, then the "Who are you?" selector.
+
+Draft & Views: Build the Admin Draft button, then build the Leaderboard to display the results.
+
+Trading: Add the trading interface last, as it is the most complex UI component.
+
+Phase 4: Production Deployment & Serving
+
+To make sure the backend serves the frontend and it stays running on the Funnel:
+
+Build Frontend:
+
+Inside the frontend folder, run npm run build. This creates static files in the frontend/dist/ directory.
+
+Serve Frontend via Python:
+
+In your FastAPI main.py, mount the dist folder to the root path.
+
+FastAPI will handle /api/... requests and serve the React HTML/JS for everything else.
+
+Create a Systemd Service:
+
+Create /etc/systemd/system/wcfantasy.service
+
+Set ExecStart to run: /path/to/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+
+Run sudo systemctl enable wcfantasy and sudo systemctl start wcfantasy.
+
+Persist the Funnel:
+
+You can also run the Tailscale funnel as a background service or in a tmux/screen session to ensure the public URL stays active: tailscale funnel --bg 8000.

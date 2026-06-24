@@ -1,0 +1,63 @@
+World Cup Fantasy App - Full Feature List
+
+1. Authentication & Onboarding
+
+Global Password Gate: One password to view the site.
+
+Profile Picker: "Who are you?" screen to select your identity.
+
+Add Player (Pre-Draft): Open signup form where family members can type their name to join the pool before the draft begins.
+
+2. The Draft System (Admin Controlled)
+
+Random Team Allocation: Admin presses a button to randomly distribute the 32 remaining teams evenly among all registered family members.
+
+Edge Case Handling: If 32 doesn't divide evenly by the number of players, the remaining teams are assigned to the "House" (unowned), or left as free agents.
+
+3. User Dashboard & Leaderboard
+
+Global Leaderboard: Ranks family members by total points.
+
+Team Roster View: Clicking a family member shows the teams they own and how many points each team has contributed.
+
+Mobile-First UI: Large tap targets, clean tables, and swipeable views for mobile phones.
+
+4. Trading System
+
+Trade Market: A screen showing all teams and their owners.
+
+Propose Trade: User A selects their team and requests a team from User B.
+
+Trade Inbox: Users get an alert when they log in if they have a pending trade. They can Accept or Reject.
+
+Trade History: A feed showing recent trades (e.g., "Dad traded USA to Mom for France").
+
+5. Scoring System (Configurable)
+
+Since this starts at the Round of 32, points should be weighted for knockout success:
+
+Match Win: +3 points
+
+Match Draw (Penalties): +1 point
+
+Goals Scored: +1 point per goal
+
+Clean Sheet: +2 points
+
+Advance to Quarter-Finals: +3 points
+
+Advance to Semi-Finals: +5 points
+
+Advance to Final: +7 points
+
+Win World Cup: +10 points
+
+6. Admin Panel (Secure)
+
+Standings Importer: A large <textarea> where the admin pastes the raw text from the FIFA website.
+
+Match Result Importer: (For Knockouts) A simple form to input specific game results (e.g., USA 2 - 1 Mexico) to trigger advance bonuses.
+
+Manual Override: Ability to manually edit a team's score or a user's points in case of errors.
+
+Trade Veto: Admin ability to cancel or reverse accidental trades.

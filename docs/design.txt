@@ -1,0 +1,55 @@
+World Cup Fantasy App - Design Document
+
+1. System Architecture
+
+The application will use a decoupled client-server architecture.
+
+Frontend: React (with Hooks) powered by Vite. Styling will use Tailwind CSS for rapid, mobile-first responsive design.
+
+Backend: Python using FastAPI (recommended for its speed and auto-generated API docs, though Flask is a fine alternative).
+
+Database: SQLite. It's lightweight, requires no background service, and is perfect for a family-sized app.
+
+Hosting: The app will be served locally on an Ubuntu Mini PC. Tailscale will be used to expose the app to family members on the Tailnet without opening public router ports.
+
+2. Database Schema (SQLite)
+
+users:
+
+id (PK), username (String), is_admin (Boolean), total_points (Integer)
+
+teams:
+
+id (PK), name (String), status (Active/Eliminated), owner_id (FK -> users.id)
+
+Stats columns: wins, draws, losses, goals_for, goals_against, clean_sheets, points_earned
+
+trades:
+
+id (PK), proposer_id (FK), receiver_id (FK), team_offered_id (FK), team_requested_id (FK), status (Pending/Accepted/Rejected)
+
+settings:
+
+Key-value store for app state (e.g., draft_completed: boolean, sitewide_password: hash, admin_password: hash)
+
+3. Authentication Flow
+
+To balance ease of use for the family with security for the admin, the app uses a tiered auth system:
+
+Sitewide Gate: Upon first visit, the user sees a single password input. Entering the correct family password sets a JWT/cookie (site_access_token).
+
+User Selection ("Honor System"): Users see a list of family member names. Clicking a name sets their user_id in local storage, allowing them to propose trades and view their profile.
+
+Admin Login: A hidden or discrete button (e.g., long-pressing the header) reveals an Admin Login modal. Entering the admin password returns an admin_token with privileges to assign teams, parse data, and update scores.
+
+4. Data Parsing Strategy
+
+The admin will paste raw text from the FIFA website. The backend will feature a Python parsing script that:
+
+Searches the raw text for known country names (using a predefined list of the 48/32 teams).
+
+Uses regular expressions (Regex) or sequential line-reading to grab the next relevant integers (Played, Wins, Draws, Losses, GF, GA, GD, Pts).
+
+Updates the teams table with these new stats.
+
+Triggers a calculate_scores() function that updates every user's total points based on their owned teams.
