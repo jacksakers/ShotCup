@@ -4,28 +4,35 @@ from contextlib import contextmanager
 
 DB_PATH = os.getenv("DB_PATH", "shotcup.db")
 
-# Canonical 2026 FIFA World Cup team names (48 teams).
-# Update this list if the official squad differs from what's seeded here.
+# Canonical 2026 FIFA World Cup team names (48 teams — actual tournament squads).
 # The parser.py module imports this same list for text matching.
+# Names here are the English-friendly canonical forms; see parser.py NAME_ALIASES
+# for the FIFA website variants (e.g. "Korea Republic" → "South Korea").
 WC_TEAMS = [
-    # UEFA (16)
-    "France", "England", "Germany", "Spain", "Portugal", "Netherlands",
-    "Belgium", "Italy", "Croatia", "Denmark", "Switzerland", "Austria",
-    "Poland", "Serbia", "Scotland", "Hungary",
-    # CONMEBOL (6)
-    "Argentina", "Brazil", "Colombia", "Ecuador", "Uruguay", "Paraguay",
-    # CONCACAF (6)
-    "USA", "Mexico", "Canada", "Costa Rica", "Honduras", "Panama",
-    # CAF (9)
-    "Morocco", "Senegal", "Nigeria", "Cameroon", "Ghana",
-    "Tunisia", "Algeria", "Egypt", "Ivory Coast",
-    # AFC (8)
-    "Japan", "South Korea", "Iran", "Saudi Arabia",
-    "Australia", "Uzbekistan", "Qatar", "Iraq",
-    # OFC + remaining qualifiers (3)
-    "New Zealand", "Venezuela", "Jamaica",
-    # Intercontinental playoff / additional qualifiers (3)
-    "DR Congo", "Romania", "Slovenia",
+    # Group A
+    "Mexico", "South Korea", "Czechia", "South Africa",
+    # Group B
+    "Canada", "Switzerland", "Bosnia and Herzegovina", "Qatar",
+    # Group C
+    "Brazil", "Morocco", "Scotland", "Haiti",
+    # Group D
+    "USA", "Australia", "Paraguay", "Turkey",
+    # Group E
+    "Germany", "Ivory Coast", "Ecuador", "Curacao",
+    # Group F
+    "Netherlands", "Japan", "Sweden", "Tunisia",
+    # Group G
+    "Egypt", "Iran", "Belgium", "New Zealand",
+    # Group H
+    "Spain", "Uruguay", "Cabo Verde", "Saudi Arabia",
+    # Group I
+    "France", "Norway", "Senegal", "Iraq",
+    # Group J
+    "Argentina", "Austria", "Algeria", "Jordan",
+    # Group K
+    "Colombia", "Portugal", "DR Congo", "Uzbekistan",
+    # Group L
+    "England", "Ghana", "Croatia", "Panama",
 ]
 
 
@@ -90,14 +97,13 @@ def init_db():
             );
         """)
 
-        # Seed teams if the table is empty
-        count = conn.execute("SELECT COUNT(*) FROM teams").fetchone()[0]
-        if count == 0:
-            for team_name in WC_TEAMS:
-                conn.execute(
-                    "INSERT OR IGNORE INTO teams (name) VALUES (?)",
-                    (team_name,),
-                )
+        # Seed teams — INSERT OR IGNORE runs on every startup so that
+        # teams added to WC_TEAMS are picked up without a DB reset.
+        for team_name in WC_TEAMS:
+            conn.execute(
+                "INSERT OR IGNORE INTO teams (name) VALUES (?)",
+                (team_name,),
+            )
 
         # Initialize draft_completed setting if missing
         conn.execute(

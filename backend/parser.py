@@ -12,19 +12,44 @@ from database import WC_TEAMS
 # Name normalisation
 # ---------------------------------------------------------------------------
 
-# Maps lowercased variants that may appear in FIFA copy-paste → canonical name.
+# Maps lowercased FIFA-website variants → canonical name used in WC_TEAMS.
 NAME_ALIASES: dict[str, str] = {
+    # USA
     "united states": "USA",
     "usa": "USA",
     "u.s.a.": "USA",
+    "united states of america": "USA",
+    # Korea
     "korea republic": "South Korea",
     "republic of korea": "South Korea",
+    # Iran
+    "ir iran": "Iran",
+    "islamic republic of iran": "Iran",
+    # Ivory Coast
     "côte d'ivoire": "Ivory Coast",
     "cote d'ivoire": "Ivory Coast",
     "côte d ivoire": "Ivory Coast",
+    "cote d ivoire": "Ivory Coast",
+    # DR Congo
     "democratic republic of congo": "DR Congo",
     "congo dr": "DR Congo",
     "drc": "DR Congo",
+    "dr. congo": "DR Congo",
+    # Turkey
+    "türkiye": "Turkey",
+    "turkiye": "Turkey",
+    "turkey": "Turkey",
+    # Curacao
+    "curaçao": "Curacao",
+    # Bosnia
+    "bosnia": "Bosnia and Herzegovina",
+    "bih": "Bosnia and Herzegovina",
+    # Cape Verde
+    "cape verde": "Cabo Verde",
+    # Czech Republic
+    "czech republic": "Czechia",
+    # Czechia alternate
+    "czechia": "Czechia",
 }
 
 
@@ -42,16 +67,49 @@ _SEARCH_TERMS: list[tuple[str, str]] = sorted(
     reverse=True,
 )
 
+# Fast exact-match lookup used by the multiline parser: lowercase → canonical
+_NAME_LOOKUP: dict[str, str] = {term.lower(): canonical for term, canonical in _SEARCH_TERMS}
+
 
 # ---------------------------------------------------------------------------
 # Standings parser
 # ---------------------------------------------------------------------------
 
+def _parse_stats_line(stats_line: str) -> list[int] | None:
+    """Parse a tab/space-separated stats line into a list of integers.
+
+    Handles both unsigned and signed values (+3, -6, etc.).
+    Returns None if fewer than 6 integers can be extracted.
+    """
+    nums: list[int] = []
+    for tok in re.split(r"[\t ]+", stats_line.strip()):
+        tok = tok.strip()
+        if not tok:
+            continue
+        try:
+            nums.append(int(tok))
+        except ValueError:
+            # Skip non-numeric tokens (e.g. "Form", stray letters)
+            pass
+    return nums if len(nums) >= 6 else None
+
+
 def parse_standings(raw_text: str) -> list[dict]:
     """Parse a raw FIFA group-stage standings block and return team statistics.
 
-    Handles both 8-column (P W D L GF GA GD Pts) and 7-column
-    (P W D L GF GA Pts) table formats.
+    Supports two formats automatically:
+
+    **Inline** (name + stats on one line — common in simple tables):
+        ``Argentina  3  3  0  0  9  0  +9  9``
+
+    **Multiline** (FIFA website copy-paste — name on its own line, stats below):
+        ::
+            Argentina
+            2  2  0  0  5  0  +5  -2  6
+
+    Both 8-column (P W D L GF GA GD Pts) and 9-column
+    (P W D L GF GA GD TCS Pts) formats are handled.
+    Negative goal-difference and TCS values are handled correctly.
 
     Args:
         raw_text: Text copied directly from the FIFA standings page.
@@ -59,59 +117,114 @@ def parse_standings(raw_text: str) -> list[dict]:
     Returns:
         List of dicts, each with keys:
             name, wins, draws, losses, goals_for, goals_against
-        Only teams that are found in the text are included.
+        Only teams found in the text are included.
     """
     results: list[dict] = []
     found_canonical: set[str] = set()
 
+    # -----------------------------------------------------------------------
+    # Strategy 1 — multiline format
+    # Team name appears on its own line; stats are on the next non-empty line
+    # that starts with a digit.
+    # -----------------------------------------------------------------------
+    lines = [ln.strip() for ln in raw_text.splitlines()]
+
+    for i, line in enumerate(lines):
+        if not line:
+            continue
+
+        canonical = _NAME_LOOKUP.get(line.lower())
+        if not canonical or canonical in found_canonical:
+            continue
+
+        # Look ahead up to 6 lines for a stats row
+        for j in range(i + 1, min(i + 7, len(lines))):
+            stats_line = lines[j]
+            if not stats_line:
+                continue
+            # Stats line must start with a digit (the P column)
+            if not stats_line[0].isdigit():
+                break  # Hit another text line — stop looking
+
+            nums = _parse_stats_line(stats_line)
+            if nums and len(nums) >= 6:
+                # Columns: [P, W, D, L, GF, GA, (GD), (TCS), (Pts)]
+                results.append({
+                    "name": canonical,
+                    "wins": nums[1],
+                    "draws": nums[2],
+                    "losses": nums[3],
+                    "goals_for": nums[4],
+                    "goals_against": nums[5],
+                })
+                found_canonical.add(canonical)
+            break  # Whether we got stats or not, move on
+
+    # -----------------------------------------------------------------------
+    # Strategy 2 — inline format (fallback for simple tables)
+    # Handles signed GD/TCS by using [+\-]?\d+ for skipped columns.
+    # -----------------------------------------------------------------------
     for search_term, canonical in _SEARCH_TERMS:
         if canonical in found_canonical:
             continue
 
         escaped = re.escape(search_term)
 
-        # --- Format A: P W D L GF GA GD Pts (GD present, signed or unsigned) ---
-        pattern_a = (
+        # 9-col: P W D L GF GA GD TCS Pts  (skip both GD and TCS)
+        pattern_9 = (
             rf"\b{escaped}\b"
-            r"\s+(\d+)"          # P (played)
-            r"\s+(\d+)"          # W
-            r"\s+(\d+)"          # D
-            r"\s+(\d+)"          # L
-            r"\s+(\d+)"          # GF
-            r"\s+(\d+)"          # GA
-            r"\s+[+\-]?\d+"      # GD  (skip — not a capture group)
-            r"\s+(\d+)"          # Pts (FIFA pts — recorded but not used for scoring)
+            r"\s+(\d+)"           # P
+            r"\s+(\d+)"           # W
+            r"\s+(\d+)"           # D
+            r"\s+(\d+)"           # L
+            r"\s+(\d+)"           # GF
+            r"\s+(\d+)"           # GA
+            r"\s+[+\-]?\d+"       # GD  (skip)
+            r"\s+[+\-]?\d+"       # TCS (skip)
+            r"\s+(\d+)"           # Pts
+        )
+        # 8-col: P W D L GF GA GD Pts  (skip GD)
+        pattern_8 = (
+            rf"\b{escaped}\b"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+[+\-]?\d+"       # GD (skip)
+            r"\s+(\d+)"           # Pts
+        )
+        # 7-col: P W D L GF GA Pts  (no GD)
+        pattern_7 = (
+            rf"\b{escaped}\b"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
+            r"\s+(\d+)"
         )
 
-        # --- Format B: P W D L GF GA Pts (no GD column) ---
-        pattern_b = (
-            rf"\b{escaped}\b"
-            r"\s+(\d+)"          # P
-            r"\s+(\d+)"          # W
-            r"\s+(\d+)"          # D
-            r"\s+(\d+)"          # L
-            r"\s+(\d+)"          # GF
-            r"\s+(\d+)"          # GA
-            r"\s+(\d+)"          # Pts
-        )
-
-        match = re.search(pattern_a, raw_text, re.IGNORECASE)
-        if match:
-            _p, w, d, l, gf, ga, _pts = match.groups()
-        else:
-            match = re.search(pattern_b, raw_text, re.IGNORECASE)
+        match = None
+        for pat in (pattern_9, pattern_8, pattern_7):
+            match = re.search(pat, raw_text, re.IGNORECASE)
             if match:
-                _p, w, d, l, gf, ga, _pts = match.groups()
-            else:
-                continue
+                break
 
+        if not match:
+            continue
+
+        groups = match.groups()
+        # groups: (P, W, D, L, GF, GA, [Pts])  — P and Pts are unused
         results.append({
             "name": canonical,
-            "wins": int(w),
-            "draws": int(d),
-            "losses": int(l),
-            "goals_for": int(gf),
-            "goals_against": int(ga),
+            "wins": int(groups[1]),
+            "draws": int(groups[2]),
+            "losses": int(groups[3]),
+            "goals_for": int(groups[4]),
+            "goals_against": int(groups[5]),
         })
         found_canonical.add(canonical)
 

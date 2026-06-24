@@ -31,7 +31,7 @@ export default function Layout() {
     }`;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-green-50 flex flex-col">
       {/* Header */}
       <header className="bg-emerald-600 text-white shadow-md">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
