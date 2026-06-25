@@ -18,7 +18,7 @@ export default function SiteLogin() {
       await loginSite(password);
       navigate('/pick-user');
     } catch (err) {
-      setError('Wrong password — try again.');
+      setError(err.message || 'Wrong password — try again.');
     } finally {
       setLoading(false);
     }

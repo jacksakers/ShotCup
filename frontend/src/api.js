@@ -1,5 +1,5 @@
 // src/api.js
-// All API calls go through here. During dev, Vite proxies /api -> :8000.
+// All API calls go through here. During dev, Vite proxies /api -> :8001.
 // In production, set VITE_API_URL to your Tailscale URL.
 
 const BASE = import.meta.env.VITE_API_URL ?? '';
