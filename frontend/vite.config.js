@@ -12,5 +12,8 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    allowedHosts: [
+      "calculon.taild885f1.ts.net"
+    ]
   },
 })
