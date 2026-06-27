@@ -6,6 +6,7 @@ import SiteLogin from './pages/SiteLogin';
 import PickUser from './pages/PickUser';
 import Leaderboard from './pages/Leaderboard';
 import Teams from './pages/Teams';
+import Trading from './pages/Trading';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 
@@ -28,6 +29,7 @@ function AppRoutes() {
       <Route element={<RequireSiteAuth><Layout /></RequireSiteAuth>}>
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/teams" element={<Teams />} />
+        <Route path="/trades" element={<Trading />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<RequireAdminAuth><Admin /></RequireAdminAuth>} />
       </Route>

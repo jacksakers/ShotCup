@@ -79,6 +79,9 @@ export default function Layout() {
           <NavLink to="/teams" className={navCls}>
             ⚽ Teams
           </NavLink>
+          <NavLink to="/trades" className={navCls}>
+            🔄 Trades
+          </NavLink>
           <NavLink to="/profile" className={navCls}>
             👤 Me
           </NavLink>

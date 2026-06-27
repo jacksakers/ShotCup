@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from typing import Optional
+from typing import Optional, List
 
 
 # ---------------------------------------------------------------------------
@@ -90,13 +90,14 @@ class LeaderboardEntry(BaseModel):
 
 class TradeCreate(BaseModel):
     proposer_id: int
-    team_offered_id: int
-    team_requested_id: int
+    offered_team_ids: List[int]
+    requested_team_ids: List[int]
 
 
 class TradeRespond(BaseModel):
     user_id: int
     action: str  # "accept" or "reject"
+    accepted_team_id: Optional[int] = None
 
     @field_validator("action")
     @classmethod
@@ -110,12 +111,14 @@ class TradeResponse(BaseModel):
     id: int
     proposer_id: int
     proposer_username: str
-    receiver_id: int
-    receiver_username: str
-    team_offered_id: int
-    team_offered_name: str
-    team_requested_id: int
-    team_requested_name: str
+    receiver_id: Optional[int] = None
+    receiver_username: Optional[str] = None
+    offered_team_ids: List[int]
+    offered_team_names: List[str]
+    requested_team_ids: List[int]
+    requested_team_names: List[str]
+    accepted_team_id: Optional[int] = None
+    accepted_team_name: Optional[str] = None
     status: str
     created_at: str
 

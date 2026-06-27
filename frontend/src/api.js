@@ -71,8 +71,9 @@ export const getTrades = (params = {}) => {
 
 export const proposeTrade = (data) => request('POST', '/api/trades', data);
 
-export const respondToTrade = (id, user_id, action) =>
-  request('PUT', `/api/trades/${id}/respond`, { user_id, action });
+export const respondToTrade = (id, user_id, action, accepted_team_id = null) =>
+
+  request('PUT', `/api/trades/${id}/respond`, { user_id, action, accepted_team_id });
 
 export const vetoTrade = (id) =>
   request('DELETE', `/api/admin/trades/${id}`, undefined, 'admin_token');
