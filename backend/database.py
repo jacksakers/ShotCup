@@ -10,29 +10,29 @@ DB_PATH = os.getenv("DB_PATH", "shotcup.db")
 # for the FIFA website variants (e.g. "Korea Republic" → "South Korea").
 WC_TEAMS = [
     # Group A
-    "Mexico", "South Korea", "Czechia", "South Africa",
+    "Mexico", "South Africa",
     # Group B
-    "Canada", "Switzerland", "Bosnia and Herzegovina", "Qatar",
+    "Canada", "Switzerland", "Bosnia and Herzegovina",
     # Group C
-    "Brazil", "Morocco", "Scotland", "Haiti",
+    "Brazil", "Morocco",
     # Group D
-    "USA", "Australia", "Paraguay", "Turkey",
+    "USA", "Australia", "Paraguay",
     # Group E
-    "Germany", "Ivory Coast", "Ecuador", "Curacao",
+    "Germany", "Ivory Coast", "Ecuador",
     # Group F
-    "Netherlands", "Japan", "Sweden", "Tunisia",
+    "Netherlands", "Japan", "Sweden",
     # Group G
-    "Egypt", "Iran", "Belgium", "New Zealand",
+    "Egypt", "Belgium",
     # Group H
-    "Spain", "Uruguay", "Cabo Verde", "Saudi Arabia",
+    "Spain", "Cabo Verde",
     # Group I
-    "France", "Norway", "Senegal", "Iraq",
+    "France", "Norway", "Senegal",
     # Group J
-    "Argentina", "Austria", "Algeria", "Jordan",
+    "Argentina", "Austria", "Algeria",
     # Group K
-    "Colombia", "Portugal", "DR Congo", "Uzbekistan",
+    "Colombia", "Portugal", "DR Congo",
     # Group L
-    "England", "Ghana", "Croatia", "Panama",
+    "England", "Ghana", "Croatia",
 ]
 
 
