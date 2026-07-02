@@ -1,6 +1,6 @@
 // src/components/TradeInbox.jsx
 import { useState } from 'react';
-import { respondToTrade } from '../api';
+import { respondToTrade, deleteTrade } from '../api';
 
 export default function TradeInbox({ currentUser, trades, teams, onAction }) {
   const [selectedAccepted, setSelectedAccepted] = useState({}); // tradeId -> teamId
@@ -50,11 +50,23 @@ export default function TradeInbox({ currentUser, trades, teams, onAction }) {
           }
         }
       }
-
       await respondToTrade(tradeId, currentUser.id, action, acceptedId);
       if (onAction) onAction();
     } catch (err) {
       setActionError(err.message ?? 'Response failed.');
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
+  const handleDelete = async (tradeId) => {
+    setActionError('');
+    setSubmittingId(tradeId);
+    try {
+      await deleteTrade(tradeId, currentUser.id);
+      if (onAction) onAction();
+    } catch (err) {
+      setActionError(err.message ?? 'Deletion failed.');
     } finally {
       setSubmittingId(null);
     }
@@ -165,7 +177,6 @@ export default function TradeInbox({ currentUser, trades, teams, onAction }) {
                     Pending
                   </span>
                 </div>
-
                 <div className="text-xs space-y-1">
                   <p className="text-gray-600">
                     <span className="font-bold text-gray-800">You Offer:</span> {trade.offered_team_names.join(' & ')}
@@ -173,6 +184,16 @@ export default function TradeInbox({ currentUser, trades, teams, onAction }) {
                   <p className="text-gray-600">
                     <span className="font-bold text-gray-800">You Request:</span> {trade.requested_team_names.join(' OR ')}
                   </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    onClick={() => handleDelete(trade.id)}
+                    disabled={submittingId !== null}
+                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold py-1.5 rounded-lg border border-red-100 transition-colors"
+                  >
+                    {submittingId === trade.id ? 'Deleting...' : 'Cancel Proposal'}
+                  </button>
                 </div>
               </div>
             ))}

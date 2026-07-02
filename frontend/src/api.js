@@ -75,5 +75,11 @@ export const respondToTrade = (id, user_id, action, accepted_team_id = null) =>
 
   request('PUT', `/api/trades/${id}/respond`, { user_id, action, accepted_team_id });
 
+
+export const deleteTrade = (id, user_id) =>
+
+  request('DELETE', `/api/trades/${id}?user_id=${user_id}`);
+
+
 export const vetoTrade = (id) =>
   request('DELETE', `/api/admin/trades/${id}`, undefined, 'admin_token');
