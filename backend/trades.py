@@ -191,7 +191,26 @@ def respond_to_trade(trade_id: int, req: TradeRespond, _auth=Depends(require_sit
                 conn.execute("UPDATE trades SET status = 'Rejected' WHERE id = ?", (t["id"],))
                 
         _recalculate_all_scores(conn)
-        return _row_to_trade_response(conn, conn.execute("SELECT * FROM trades WHERE id = ?", (trade_id,)).fetchone())
+    return _row_to_trade_response(conn, conn.execute("SELECT * FROM trades WHERE id = ?", (trade_id,)).fetchone())
+
+
+@trades_router.delete("/api/trades/{trade_id}", tags=["Trades"])
+def delete_trade(trade_id: int, user_id: int = Query(...), _auth=Depends(require_site_auth)):
+    """Allow a proposer to cancel their own pending trade."""
+    with get_db() as conn:
+        trade_row = conn.execute("SELECT * FROM trades WHERE id = ?", (trade_id,)).fetchone()
+        if not trade_row:
+            raise HTTPException(status_code=404, detail="Trade not found")
+        
+        trade = dict(trade_row)
+        if trade["proposer_id"] != user_id:
+            raise HTTPException(status_code=403, detail="You can only delete your own trades")
+            
+        if trade["status"] != "Pending":
+            raise HTTPException(status_code=400, detail="Only pending trades can be deleted")
+            
+        conn.execute("UPDATE trades SET status = 'Rejected' WHERE id = ?", (trade_id,))
+    return {"message": "Trade cancelled"}
 
 
 @trades_router.delete("/api/admin/trades/{trade_id}", tags=["Admin"])
