@@ -68,11 +68,11 @@ def _calculate_team_points(team: dict) -> int:
     if team["reached_quarters"]:
         pts += 3
     if team["reached_semis"]:
-        pts += 5
+        pts += 4
     if team["reached_final"]:
-        pts += 7
+        pts += 5
     if team["won_tournament"]:
-        pts += 10
+        pts += 6
     return pts
 
 
