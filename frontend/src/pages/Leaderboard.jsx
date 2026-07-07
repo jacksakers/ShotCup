@@ -84,9 +84,9 @@ export default function Leaderboard() {
                         <span className={team.status === 'Eliminated' ? 'text-gray-400 line-through' : 'text-gray-700'}>
                           {team.name}
                         </span>
-                        {team.won_tournament && <span title="Champions">🏆</span>}
-                        {team.reached_final && !team.won_tournament && <span title="Finalist">🥈</span>}
-                        {team.reached_semis && !team.reached_final && <span title="Semi-finalists">4️⃣</span>}
+                        {team.won_tournament && <span title="Champions"></span>}
+                        {team.reached_final && !team.won_tournament && <span title="Finalist"></span>}
+                        {team.reached_semis && !team.reached_final && <span title="Semi-finalists"></span>}
                       </div>
                       <span className="font-semibold text-emerald-700">{team.points_earned} pts</span>
                     </div>
