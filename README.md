@@ -136,7 +136,7 @@ All routes are prefixed with `/api/`. See `/docs` for full interactive documenta
 | Advance to Quarter-Finals | +3 |
 | Advance to Semi-Finals | +4 |
 | Reach the Final milestone | +5 |
-| Finals qualification bonus (current `won_tournament` marker) | +8 |
+| Finals qualification bonus (per `won_tournament` flag) | +8 |
 | Win the World Cup (extra champion bonus once one active team remains) | +12 |
 
 ---

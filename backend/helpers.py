@@ -12,6 +12,7 @@ from database import get_db
 SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE-THIS-IN-PRODUCTION")
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_HOURS = 24 * 7  # tokens valid for 1 week
+TEAM_STATUS_ACTIVE = "Active"
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -81,7 +82,8 @@ def _calculate_team_points(team: dict, champion_team_id: Optional[int] = None) -
 def _recalculate_all_scores(conn) -> None:
     """Recompute points_earned for every team, then total_points for every user."""
     active_winners = conn.execute(
-        "SELECT id FROM teams WHERE won_tournament = 1 AND status = 'Active'"
+        "SELECT id FROM teams WHERE won_tournament = 1 AND status = ?",
+        (TEAM_STATUS_ACTIVE,),
     ).fetchall()
     # In the current progression state, semi-final winners are marked as won_tournament
     # while both finalists remain Active before the final. Apply the champion bonus
