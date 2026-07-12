@@ -88,6 +88,7 @@ def _recalculate_all_scores(conn) -> None:
     # In the current progression state, semi-final winners are marked as won_tournament
     # while both finalists remain Active before the final. Apply the champion bonus
     # only once there is exactly one Active won_tournament team left.
+    # If there are zero (pre-finals) or multiple active winners, no champion bonus is applied.
     champion_team_id = active_winners[0]["id"] if len(active_winners) == 1 else None
 
     teams = conn.execute("SELECT * FROM teams").fetchall()
