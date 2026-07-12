@@ -12,7 +12,7 @@ from database import get_db
 SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE-THIS-IN-PRODUCTION")
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_HOURS = 24 * 7  # tokens valid for 1 week
-TEAM_STATUS_ACTIVE = "Active"
+TEAM_STATUS_ACTIVE = "Active"  # teams.status values in DB should use this exact casing
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -85,7 +85,7 @@ def _recalculate_all_scores(conn) -> None:
         "SELECT id FROM teams WHERE won_tournament = 1 AND status = ?",
         (TEAM_STATUS_ACTIVE,),
     ).fetchall()
-    # In the current progression state, semi-final winners are marked as won_tournament
+    # In the current progression state, semifinal winners are marked as won_tournament
     # while both finalists remain Active before the final. Apply the champion bonus
     # only once there is exactly one Active won_tournament team left.
     # If there are zero (pre-finals) or multiple active winners, no champion bonus is applied.
