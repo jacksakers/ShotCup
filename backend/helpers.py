@@ -12,6 +12,7 @@ from database import get_db
 SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE-THIS-IN-PRODUCTION")
 ALGORITHM = "HS256"
 TOKEN_EXPIRE_HOURS = 24 * 7  # tokens valid for 1 week
+TEAM_STATUS_ACTIVE = "Active"  # teams.status values in DB should use this exact casing
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -58,7 +59,7 @@ async def require_admin_auth(
     return _decode_token(credentials.credentials, "admin")
 
 
-def _calculate_team_points(team: dict) -> int:
+def _calculate_team_points(team: dict, champion_team_id: Optional[int] = None) -> int:
     """Return total fantasy points for a team based on its current stats."""
     pts = 0
     pts += team["wins"] * 3
@@ -72,16 +73,28 @@ def _calculate_team_points(team: dict) -> int:
     if team["reached_final"]:
         pts += 5
     if team["won_tournament"]:
-        pts += 6
+        pts += 8
+    if champion_team_id is not None and team["id"] == champion_team_id:
+        pts += 12
     return pts
 
 
 def _recalculate_all_scores(conn) -> None:
     """Recompute points_earned for every team, then total_points for every user."""
+    active_winners = conn.execute(
+        "SELECT id FROM teams WHERE won_tournament = 1 AND status = ?",
+        (TEAM_STATUS_ACTIVE,),
+    ).fetchall()
+    # In the current progression state, semifinal winners are marked as won_tournament
+    # while both finalists remain Active before the final. Apply the champion bonus
+    # only once there is exactly one Active won_tournament team left.
+    # If there are zero (pre-finals) or multiple active winners, no champion bonus is applied.
+    champion_team_id = active_winners[0]["id"] if len(active_winners) == 1 else None
+
     teams = conn.execute("SELECT * FROM teams").fetchall()
     for team in teams:
         team_dict = dict(team)
-        pts = _calculate_team_points(team_dict)
+        pts = _calculate_team_points(team_dict, champion_team_id=champion_team_id)
         conn.execute("UPDATE teams SET points_earned = ? WHERE id = ?", (pts, team_dict["id"]))
 
     users = conn.execute("SELECT id FROM users").fetchall()
