@@ -88,7 +88,6 @@ export default function Profile() {
                 <p className={`font-semibold text-sm ${team.status === 'Eliminated' ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                   {team.name}
                   {team.won_tournament && ' 🏆'}
-                  {team.reached_final && !team.won_tournament && ' 🥈'}
                 </p>
                 <p className="text-xs text-gray-400">
                   {team.wins}W {team.draws}D {team.losses}L &middot; {team.goals_for} GF

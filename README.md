@@ -134,9 +134,10 @@ All routes are prefixed with `/api/`. See `/docs` for full interactive documenta
 | Goal Scored | +1 per goal |
 | Clean Sheet | +2 |
 | Advance to Quarter-Finals | +3 |
-| Advance to Semi-Finals | +5 |
-| Advance to Final | +7 |
-| Win the World Cup | +10 |
+| Advance to Semi-Finals | +4 |
+| Reach the Final milestone | +5 |
+| Finalist bonus | +8 |
+| Win the World Cup (champion bonus) | +12 |
 
 ---
 
